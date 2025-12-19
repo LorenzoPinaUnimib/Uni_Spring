@@ -144,11 +144,37 @@ public class StudenteService {
         if (studenteDetails.getCognome() != null) {
             studente.setCognome(studenteDetails.getCognome());
         }
-        if (studenteDetails.getTelefono() != null) {
-            studente.setTelefono(studenteDetails.getTelefono());
-        }
         if (studenteDetails.getSemestreCorrente() != null) {
             studente.setSemestreCorrente(studenteDetails.getSemestreCorrente());
         }
+    }
+    /**
+     * Trova studenti che seguono corsi di un determinato dipartimento
+     */
+    public List<Studente> getStudentiByCorsiDipartimento(String nomeDipartimento) {
+        return studenteRepository.findStudentiByCorsiDipartimento(nomeDipartimento);
+    }
+    
+    /**
+     * Trova studenti che seguono corsi di un dipartimento con filtri avanzati
+     */
+    public List<Studente> getStudentiByCorsiDipartimentoConFiltri(
+            String nomeDipartimento, 
+            String nomeStudente, 
+            Integer minCrediti, 
+            Double minMedia) {
+        return studenteRepository.findStudentiByCorsiDipartimentoConFiltri(
+            nomeDipartimento, 
+            nomeStudente, 
+            minCrediti, 
+            minMedia
+        );
+    }
+    
+    /**
+     * Conta studenti che seguono corsi di un dipartimento
+     */
+    public Long countStudentiByCorsiDipartimento(String nomeDipartimento) {
+        return studenteRepository.countStudentiByCorsiDipartimento(nomeDipartimento);
     }
 }

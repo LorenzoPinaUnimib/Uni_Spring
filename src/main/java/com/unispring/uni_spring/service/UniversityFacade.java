@@ -25,14 +25,13 @@ public class UniversityFacade {
     // ========== STUDENTI ==========
     
     public Studente createStudente(String nome, String cognome, LocalDate dataNascita,
-                                  String email, String telefono, String matricola,
+                                  String email,  String matricola,
                                   Integer annoImmatricolazione) {
         Studente studente = new Studente();
         studente.setNome(nome);
         studente.setCognome(cognome);
         studente.setDataNascita(dataNascita);
         studente.setEmail(email);
-        studente.setTelefono(telefono);
         studente.setMatricola(matricola);
         studente.setAnnoImmatricolazione(annoImmatricolazione);
         
@@ -52,11 +51,10 @@ public class UniversityFacade {
     }
     
     public Studente updateStudente(Long id, String nome, String cognome, 
-                                  String telefono, Integer semestreCorrente) {
+                                   Integer semestreCorrente) {
         Studente studenteDetails = new Studente();
         if (nome != null) studenteDetails.setNome(nome);
         if (cognome != null) studenteDetails.setCognome(cognome);
-        if (telefono != null) studenteDetails.setTelefono(telefono);
         if (semestreCorrente != null) studenteDetails.setSemestreCorrente(semestreCorrente);
         
         return studenteService.updateStudente(id, studenteDetails);
@@ -69,7 +67,7 @@ public class UniversityFacade {
     // ========== DOCENTI ==========
     
     public Docente createDocente(String nome, String cognome, LocalDate dataNascita,
-                                String email, String telefono, String codiceDocente,
+                                String email, String codiceDocente,
                                 Docente.GradoAccademico gradoAccademico, BigDecimal stipendio,
                                 LocalDate dataAssunzione, String ufficio, String specializzazione) {
         Docente docente = new Docente();
@@ -77,7 +75,6 @@ public class UniversityFacade {
         docente.setCognome(cognome);
         docente.setDataNascita(dataNascita);
         docente.setEmail(email);
-        docente.setTelefono(telefono);
         docente.setCodiceDocente(codiceDocente);
         docente.setGradoAccademico(gradoAccademico);
         docente.setStipendio(stipendio);
@@ -97,12 +94,11 @@ public class UniversityFacade {
     }
     
     public Docente updateDocente(Long id, String nome, String cognome,
-                                String telefono, BigDecimal stipendio, 
+                                BigDecimal stipendio, 
                                 String ufficio, String specializzazione) {
         Docente docenteDetails = new Docente();
         if (nome != null) docenteDetails.setNome(nome);
         if (cognome != null) docenteDetails.setCognome(cognome);
-        if (telefono != null) docenteDetails.setTelefono(telefono);
         if (stipendio != null) docenteDetails.setStipendio(stipendio);
         if (ufficio != null) docenteDetails.setUfficio(ufficio);
         if (specializzazione != null) docenteDetails.setSpecializzazione(specializzazione);
@@ -385,31 +381,6 @@ public class UniversityFacade {
         return "Corso trasferito al dipartimento " + nuovoDipartimento.getNome();
     }
     
-    public String promuoviDocente(Long docenteId, Docente.GradoAccademico nuovoGrado) {
-        Docente docente = docenteService.findById(docenteId)
-                .orElseThrow(() -> new RuntimeException("Docente non trovato"));
-        
-        // Validazione: anni di servizio minimi
-        if (docente.getDataAssunzione().plusYears(5).isAfter(LocalDate.now())) {
-            return "Promozione fallita: servizio minimo di 5 anni richiesto";
-        }
-        
-        docenteService.promuoviDocente(docenteId, nuovoGrado);
-        return "Docente promosso a " + nuovoGrado;
-    }
-    
-    public String promuoviStudente(Long studenteId) {
-        Studente studente = studenteService.findById(studenteId)
-                .orElseThrow(() -> new RuntimeException("Studente non trovato"));
-        
-        // Promuovi al semestre successivo se non è all'ultimo
-        if (studente.getSemestreCorrente() < 12) {
-            studenteService.promuoviSemestre(studenteId);
-            return "Studente promosso al semestre " + (studente.getSemestreCorrente() + 1);
-        } else {
-            return "Studente già all'ultimo semestre";
-        }
-    }
     
     // ========== STATISTICHE E REPORT ==========
     
@@ -682,6 +653,118 @@ public class UniversityFacade {
             "iscrizioniAggiornate", iscrizioniAggiornate,
             "errori", errori
         );
+    }
+    /**
+     * Filtra studenti che seguono corsi di un dipartimento specifico
+     */
+    public List<Studente> filtraStudentiPerCorsiDipartimento(String nomeDipartimento) {
+        if (nomeDipartimento == null || nomeDipartimento.trim().isEmpty()) {
+            throw new IllegalArgumentException("Il nome del dipartimento è obbligatorio");
+        }
+        
+        return studenteService.getStudentiByCorsiDipartimento(nomeDipartimento);
+    }
+    
+    /**
+     * Filtra studenti con filtri avanzati per corsi di un dipartimento
+     */
+    public List<Studente> filtraStudentiPerCorsiDipartimentoConFiltri(
+            String nomeDipartimento,
+            String nomeStudente,
+            Integer minCrediti,
+            Double minMedia) {
+        
+        if (nomeDipartimento == null || nomeDipartimento.trim().isEmpty()) {
+            throw new IllegalArgumentException("Il nome del dipartimento è obbligatorio");
+        }
+        
+        return studenteService.getStudentiByCorsiDipartimentoConFiltri(
+            nomeDipartimento,
+            nomeStudente,
+            minCrediti,
+            minMedia
+        );
+    }
+    
+    /**
+     * Statistiche per studenti che seguono corsi di un dipartimento
+     */
+    public Map<String, Object> getStatisticheStudentiPerCorsiDipartimento(String nomeDipartimento) {
+        if (nomeDipartimento == null || nomeDipartimento.trim().isEmpty()) {
+            throw new IllegalArgumentException("Il nome del dipartimento è obbligatorio");
+        }
+        
+        List<Studente> studenti = studenteService.getStudentiByCorsiDipartimento(nomeDipartimento);
+        Long totaleStudenti = studenteService.countStudentiByCorsiDipartimento(nomeDipartimento);
+        
+        double mediaCrediti = studenti.stream()
+                .mapToInt(Studente::getCreditiTotali)
+                .average()
+                .orElse(0.0);
+        
+        double mediaVoti = studenti.stream()
+                .mapToDouble(Studente::getMediaVoti)
+                .average()
+                .orElse(0.0);
+        
+        return Map.of(
+            "nomeDipartimento", nomeDipartimento,
+            "totaleStudenti", totaleStudenti,
+            "mediaCrediti", Math.round(mediaCrediti * 100.0) / 100.0,
+            "mediaVoti", Math.round(mediaVoti * 100.0) / 100.0,
+            "studenti", studenti
+        );
+    }
+    
+    /**
+     * Filtra corsi con docenti assunti nell'anno corrente
+     */
+    public List<Corso> filtraCorsiConDocentiAssuntiAnnoCorrente() {
+        return corsoService.getCorsiConDocentiAssuntiAnnoCorrente();
+    }
+    
+    /**
+     * Filtra corsi con docenti assunti in un anno specifico
+     */
+    public List<Corso> filtraCorsiConDocentiAssuntiAnno(Integer anno) {
+        if (anno == null) {
+            throw new IllegalArgumentException("L'anno è obbligatorio");
+        }
+        
+        return corsoService.getCorsiConDocentiAssuntiAnno(anno);
+    }
+    
+    /**
+     * Filtra corsi con docenti assunti recentemente con filtri avanzati
+     */
+    public List<Corso> filtraCorsiConDocentiAssuntiConFiltri(
+            Integer anno,
+            String nomeCorso,
+            Integer minCrediti,
+            Long dipartimentoId) {
+        
+        if (anno == null) {
+            // Default: anno corrente
+            anno = java.time.LocalDate.now().getYear();
+        }
+        
+        if (anno.equals(java.time.LocalDate.now().getYear())) {
+            return corsoService.getCorsiConDocentiAssuntiAnnoCorrenteConFiltri(
+                nomeCorso,
+                minCrediti,
+                dipartimentoId
+            );
+        } else {
+            // Per anni diversi dal corrente, filtriamo manualmente
+            List<Corso> corsi = corsoService.getCorsiConDocentiAssuntiAnno(anno);
+            
+            return corsi.stream()
+                    .filter(c -> nomeCorso == null || c.getNome().toLowerCase().contains(nomeCorso.toLowerCase()))
+                    .filter(c -> minCrediti == null || c.getCrediti() >= minCrediti)
+                    .filter(c -> dipartimentoId == null || 
+                                (c.getDipartimento() != null && c.getDipartimento().getId().equals(dipartimentoId)))
+                    .toList();
+        }
     }
     
     // ========== UTILITY METHODS ==========

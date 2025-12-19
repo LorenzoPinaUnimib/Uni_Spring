@@ -116,9 +116,6 @@ public class DocenteService {
         if (docenteDetails.getCognome() != null) {
             docente.setCognome(docenteDetails.getCognome());
         }
-        if (docenteDetails.getTelefono() != null) {
-            docente.setTelefono(docenteDetails.getTelefono());
-        }
         if (docenteDetails.getStipendio() != null) {
             docente.setStipendio(docenteDetails.getStipendio());
         }

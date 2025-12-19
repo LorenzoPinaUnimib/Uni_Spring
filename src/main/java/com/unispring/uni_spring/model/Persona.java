@@ -26,9 +26,6 @@ public abstract class Persona {
     @Column(name = "email", unique = true, nullable = false)
     private String email;
     
-    @Column(name = "telefono", nullable = false)
-    private String telefono;
-    
     @Column(name = "data_registrazione")
     private LocalDate dataRegistrazione;
     

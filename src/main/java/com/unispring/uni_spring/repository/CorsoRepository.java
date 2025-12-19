@@ -35,4 +35,45 @@ public interface CorsoRepository extends JpaRepository<Corso, Long> {
     
     @Query("SELECT COUNT(DISTINCT s.studente) FROM Segue s WHERE s.corso.id = :corsoId")
     long countStudentiIscritti(@Param("corsoId") Long corsoId);
+    /**
+     * Trova corsi con docenti assunti nell'anno corrente
+     */
+    @Query("SELECT DISTINCT c FROM Corso c " +
+           "JOIN c.docentiInsegnanti da " +
+           "JOIN da.docente d " +
+           "WHERE YEAR(d.dataAssunzione) = YEAR(CURRENT_DATE)")
+    List<Corso> findCorsiConDocentiAssuntiAnnoCorrente();
+    
+    /**
+     * Trova corsi con docenti assunti in un anno specifico
+     */
+    @Query("SELECT DISTINCT c FROM Corso c " +
+           "JOIN c.docentiInsegnanti da " +
+           "JOIN da.docente d " +
+           "WHERE YEAR(d.dataAssunzione) = :anno")
+    List<Corso> findCorsiConDocentiAssuntiAnno(@Param("anno") Integer anno);
+    
+    /**
+     * Trova corsi con docenti assunti recentemente con filtri aggiuntivi
+     */
+    @Query("SELECT DISTINCT c FROM Corso c " +
+           "JOIN c.docentiInsegnanti da " +
+           "JOIN da.docente d " +
+           "WHERE YEAR(d.dataAssunzione) = YEAR(CURRENT_DATE) " +
+           "AND (:nomeCorso IS NULL OR c.nome LIKE %:nomeCorso%) " +
+           "AND (:minCrediti IS NULL OR c.crediti >= :minCrediti) " +
+           "AND (:dipartimentoId IS NULL OR c.dipartimento.id = :dipartimentoId)")
+    List<Corso> findCorsiConDocentiAssuntiAnnoCorrenteConFiltri(
+            @Param("nomeCorso") String nomeCorso,
+            @Param("minCrediti") Integer minCrediti,
+            @Param("dipartimentoId") Long dipartimentoId);
+    
+    /**
+     * Conta corsi con docenti assunti nell'anno corrente
+     */
+    @Query("SELECT COUNT(DISTINCT c) FROM Corso c " +
+           "JOIN c.docentiInsegnanti da " +
+           "JOIN da.docente d " +
+           "WHERE YEAR(d.dataAssunzione) = YEAR(CURRENT_DATE)")
+    Long countCorsiConDocentiAssuntiAnnoCorrente();
 }

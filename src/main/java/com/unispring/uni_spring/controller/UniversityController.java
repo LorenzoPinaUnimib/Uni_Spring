@@ -31,10 +31,10 @@ public class UniversityController {
                 request.getCognome(),
                 request.getDataNascita(),
                 request.getEmail(),
-                request.getTelefono(),
                 request.getMatricola(),
                 request.getAnnoImmatricolazione()
             );
+            System.out.println(studente.toString());
             return new ResponseEntity<>(studente, HttpStatus.CREATED);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
@@ -69,7 +69,6 @@ public class UniversityController {
                 id,
                 request.getNome(),
                 request.getCognome(),
-                request.getTelefono(),
                 request.getSemestreCorrente()
             );
             return ResponseEntity.ok(updated);
@@ -97,7 +96,6 @@ public class UniversityController {
                 request.getCognome(),
                 request.getDataNascita(),
                 request.getEmail(),
-                request.getTelefono(),
                 request.getCodiceDocente(),
                 request.getGradoAccademico(),
                 request.getStipendio(),
@@ -132,7 +130,6 @@ public class UniversityController {
                 id,
                 request.getNome(),
                 request.getCognome(),
-                request.getTelefono(),
                 request.getStipendio(),
                 request.getUfficio(),
                 request.getSpecializzazione()
@@ -426,105 +423,154 @@ public class UniversityController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
-    @PutMapping("/docenti/{docenteId}/promuovi")
-    public ResponseEntity<String> promuoviDocente(
-            @PathVariable Long docenteId,
-            @RequestParam Docente.GradoAccademico nuovoGrado) {
+    @GetMapping("/filtri/studenti/dipartimento")
+    public ResponseEntity<?> getStudentiPerCorsiDipartimento(
+            @RequestParam(required = true) String nomeDipartimento,
+            @RequestParam(required = false) String nomeStudente,
+            @RequestParam(required = false) Integer minCrediti,
+            @RequestParam(required = false) Double minMedia) {
+        
         try {
-            String risultato = universityFacade.promuoviDocente(docenteId, nuovoGrado);
-            return ResponseEntity.ok(risultato);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            List<Studente> studenti;
+            
+            if (nomeStudente != null || minCrediti != null || minMedia != null) {
+                studenti = universityFacade.filtraStudentiPerCorsiDipartimentoConFiltri(
+                    nomeDipartimento, nomeStudente, minCrediti, minMedia
+                );
+            } else {
+                studenti = universityFacade.filtraStudentiPerCorsiDipartimento(nomeDipartimento);
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "filtroDipartimento", nomeDipartimento,
+                "totaleStudenti", studenti.size(),
+                "studenti", studenti
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", "Errore interno del server"
+            ));
+        }
+    }
+    
+    @GetMapping("/filtri/corsi/docenti-recenti")
+    public ResponseEntity<?> getCorsiConDocentiAssunti(
+            @RequestParam(required = false) Integer anno,
+            @RequestParam(required = false) String nomeCorso,
+            @RequestParam(required = false) Integer minCrediti,
+            @RequestParam(required = false) Long dipartimentoId) {
+        
+        try {
+            List<Corso> corsi;
+            
+            if (anno != null || nomeCorso != null || minCrediti != null || dipartimentoId != null) {
+                corsi = universityFacade.filtraCorsiConDocentiAssuntiConFiltri(
+                    anno, nomeCorso, minCrediti, dipartimentoId
+                );
+            } else {
+                corsi = universityFacade.filtraCorsiConDocentiAssuntiAnnoCorrente();
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "filtroAnno", anno != null ? anno : "corrente",
+                "totaleCorsi", corsi.size(),
+                "corsi", corsi
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
+        }
+    }
+    
+    // DTO per richieste complesse
+    @lombok.Data
+    public static class FiltroAvanzatoRequest {
+        private String nomeDipartimento;
+        private String nomeStudente;
+        private Integer minCrediti;
+        private Double minMedia;
+        private Integer annoAssunzioneDocenti;
+        private String nomeCorso;
+        private Long dipartimentoId;
+        
+        @lombok.Data
+        public static class FiltroStudenti {
+            private String nomeDipartimento;
+            private String nomeStudente;
+            private Integer minCrediti;
+            private Double minMedia;
+        }
+        
+        @lombok.Data
+        public static class FiltroCorsi {
+            private Integer anno;
+            private String nomeCorso;
+            private Integer minCrediti;
+            private Long dipartimentoId;
+        }
+    }
+    
+    @PostMapping("/filtri/avanzati")
+    public ResponseEntity<?> filtriAvanzati(
+            @RequestBody FiltroAvanzatoRequest request) {
+        
+        try {
+            Map<String, Object> risultati = Map.of();
+            
+            if (request.getNomeDipartimento() != null) {
+                List<Studente> studenti = universityFacade
+                    .filtraStudentiPerCorsiDipartimentoConFiltri(
+                        request.getNomeDipartimento(),
+                        request.getNomeStudente(),
+                        request.getMinCrediti(),
+                        request.getMinMedia()
+                    );
+                
+                risultati = Map.of(
+                    "tipo", "studenti_dipartimento",
+                    "studenti", studenti,
+                    "count", studenti.size()
+                );
+            }
+            
+            if (request.getAnnoAssunzioneDocenti() != null) {
+                List<Corso> corsi = universityFacade
+                    .filtraCorsiConDocentiAssuntiConFiltri(
+                        request.getAnnoAssunzioneDocenti(),
+                        request.getNomeCorso(),
+                        request.getMinCrediti(),
+                        request.getDipartimentoId()
+                    );
+                
+                risultati = Map.of(
+                    "tipo", "corsi_docenti_recenti",
+                    "corsi", corsi,
+                    "count", corsi.size()
+                );
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "risultati", risultati
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
         }
     }
 
-    @PutMapping("/studenti/{studenteId}/promuovi")
-    public ResponseEntity<String> promuoviStudente(@PathVariable Long studenteId) {
-        try {
-            String risultato = universityFacade.promuoviStudente(studenteId);
-            return ResponseEntity.ok(risultato);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    // ========== STATISTICHE E REPORT ==========
-
-    @GetMapping("/statistiche/universita")
-    public ResponseEntity<Map<String, Object>> getStatisticheUniversita() {
-        Map<String, Object> statistiche = universityFacade.getStatisticheUniversita();
-        return ResponseEntity.ok(statistiche);
-    }
-
-    @GetMapping("/statistiche/corso/{corsoId}")
-    public ResponseEntity<Map<String, Object>> getStatisticheCorso(@PathVariable Long corsoId) {
-        try {
-            Map<String, Object> statistiche = universityFacade.getStatisticheCorso(corsoId);
-            return ResponseEntity.ok(statistiche);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @GetMapping("/statistiche/studente/{studenteId}")
-    public ResponseEntity<Map<String, Object>> getStatisticheStudente(@PathVariable Long studenteId) {
-        try {
-            Map<String, Object> statistiche = universityFacade.getStatisticheStudente(studenteId);
-            return ResponseEntity.ok(statistiche);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @GetMapping("/statistiche/dipartimento/{dipartimentoId}")
-    public ResponseEntity<Map<String, Object>> getStatisticheDipartimento(@PathVariable Long dipartimentoId) {
-        try {
-            Map<String, Object> statistiche = universityFacade.getStatisticheDipartimento(dipartimentoId);
-            return ResponseEntity.ok(statistiche);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @GetMapping("/top-studenti")
-    public ResponseEntity<List<Studente>> getTopStudenti(
-            @RequestParam(defaultValue = "10") int limit) {
-        List<Studente> topStudenti = universityFacade.getTopStudenti(limit);
-        return ResponseEntity.ok(topStudenti);
-    }
-
-    @GetMapping("/analisi/crediti")
-    public ResponseEntity<Map<String, Object>> analizzaDistribuzioneCrediti() {
-        Map<String, Object> analisi = universityFacade.analizzaDistribuzioneCrediti();
-        return ResponseEntity.ok(analisi);
-    }
-
-    @GetMapping("/analisi/voti/{corsoId}")
-    public ResponseEntity<Map<String, Object>> analizzaDistribuzioneVoti(@PathVariable Long corsoId) {
-        try {
-            Map<String, Object> analisi = universityFacade.analizzaDistribuzioneVoti(corsoId);
-            return ResponseEntity.ok(analisi);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    // ========== BATCH OPERATIONS ==========
-
-    @PostMapping("/batch/iscrizioni")
-    public ResponseEntity<Map<String, Object>> batchIscriviStudenti(
-            @RequestBody List<Map<String, Long>> richieste) {
-        Map<String, Object> risultato = universityFacade.batchIscriviStudenti(richieste);
-        return ResponseEntity.ok(risultato);
-    }
-
-    @PostMapping("/batch/voti")
-    public ResponseEntity<Map<String, Object>> batchAssegnaVoti(
-            @RequestBody List<Map<String, Object>> assegnazioniVoti) {
-        Map<String, Object> risultato = universityFacade.batchAssegnaVoti(assegnazioniVoti);
-        return ResponseEntity.ok(risultato);
-    }
 
     // ========== REQUEST CLASSES ==========
 
@@ -536,7 +582,6 @@ public class UniversityController {
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         private LocalDate dataNascita;
         private String email;
-        private String telefono;
         private String matricola;
         private Integer annoImmatricolazione;
     }
@@ -545,7 +590,6 @@ public class UniversityController {
     public static class StudenteUpdateRequest {
         private String nome;
         private String cognome;
-        private String telefono;
         private Integer semestreCorrente;
     }
 
@@ -556,7 +600,6 @@ public class UniversityController {
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         private LocalDate dataNascita;
         private String email;
-        private String telefono;
         private String codiceDocente;
         private Docente.GradoAccademico gradoAccademico;
         private BigDecimal stipendio;
@@ -570,7 +613,6 @@ public class UniversityController {
     public static class DocenteUpdateRequest {
         private String nome;
         private String cognome;
-        private String telefono;
         private BigDecimal stipendio;
         private String ufficio;
         private String specializzazione;

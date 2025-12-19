@@ -182,4 +182,38 @@ public class CorsoService {
         
         return false;
     }
+    /**
+     * Trova corsi con docenti assunti nell'anno corrente
+     */
+    public List<Corso> getCorsiConDocentiAssuntiAnnoCorrente() {
+        return corsoRepository.findCorsiConDocentiAssuntiAnnoCorrente();
+    }
+    
+    /**
+     * Trova corsi con docenti assunti in un anno specifico
+     */
+    public List<Corso> getCorsiConDocentiAssuntiAnno(Integer anno) {
+        return corsoRepository.findCorsiConDocentiAssuntiAnno(anno);
+    }
+    
+    /**
+     * Trova corsi con docenti assunti recentemente con filtri
+     */
+    public List<Corso> getCorsiConDocentiAssuntiAnnoCorrenteConFiltri(
+            String nomeCorso, 
+            Integer minCrediti, 
+            Long dipartimentoId) {
+        return corsoRepository.findCorsiConDocentiAssuntiAnnoCorrenteConFiltri(
+            nomeCorso, 
+            minCrediti, 
+            dipartimentoId
+        );
+    }
+    
+    /**
+     * Conta corsi con docenti assunti nell'anno corrente
+     */
+    public Long countCorsiConDocentiAssuntiAnnoCorrente() {
+        return corsoRepository.countCorsiConDocentiAssuntiAnnoCorrente();
+    }
 }

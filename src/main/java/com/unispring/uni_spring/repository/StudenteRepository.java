@@ -32,4 +32,37 @@ public interface StudenteRepository extends JpaRepository<Studente, Long> {
     
     @Query("SELECT COUNT(s) FROM Studente s")
     long countAll();
+     @Query("SELECT DISTINCT s FROM Studente s " +
+           "JOIN s.corsiSeguiti cs " +
+           "JOIN cs.corso c " +
+           "JOIN c.dipartimento d " +
+           "WHERE d.nome = :nomeDipartimento")
+    List<Studente> findStudentiByCorsiDipartimento(@Param("nomeDipartimento") String nomeDipartimento);
+    
+    /**
+     * Trova studenti che seguono corsi di un dipartimento con filtri aggiuntivi
+     */
+    @Query("SELECT DISTINCT s FROM Studente s " +
+           "JOIN s.corsiSeguiti cs " +
+           "JOIN cs.corso c " +
+           "JOIN c.dipartimento d " +
+           "WHERE d.nome = :nomeDipartimento " +
+           "AND (:nomeStudente IS NULL OR (s.nome LIKE %:nomeStudente% OR s.cognome LIKE %:nomeStudente%)) " +
+           "AND (:minCrediti IS NULL OR s.creditiTotali >= :minCrediti) " +
+           "AND (:minMedia IS NULL OR s.mediaVoti >= :minMedia)")
+    List<Studente> findStudentiByCorsiDipartimentoConFiltri(
+            @Param("nomeDipartimento") String nomeDipartimento,
+            @Param("nomeStudente") String nomeStudente,
+            @Param("minCrediti") Integer minCrediti,
+            @Param("minMedia") Double minMedia);
+    
+    /**
+     * Conta studenti che seguono corsi di un dipartimento
+     */
+    @Query("SELECT COUNT(DISTINCT s) FROM Studente s " +
+           "JOIN s.corsiSeguiti cs " +
+           "JOIN cs.corso c " +
+           "JOIN c.dipartimento d " +
+           "WHERE d.nome = :nomeDipartimento")
+    Long countStudentiByCorsiDipartimento(@Param("nomeDipartimento") String nomeDipartimento);
 }

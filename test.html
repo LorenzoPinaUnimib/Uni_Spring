@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Management System - API Tester</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .sidebar {
+            background-color: var(--primary-color);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            padding: 20px;
+        }
+        
+        .endpoint-card {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .endpoint-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .endpoint-card.POST { border-left-color: var(--success-color); }
+        .endpoint-card.GET { border-left-color: var(--secondary-color); }
+        .endpoint-card.PUT { border-left-color: var(--warning-color); }
+        .endpoint-card.DELETE { border-left-color: var(--danger-color); }
+        
+        .method-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .method-POST { background-color: var(--success-color); color: white; }
+        .method-GET { background-color: var(--secondary-color); color: white; }
+        .method-PUT { background-color: var(--warning-color); color: white; }
+        .method-DELETE { background-color: var(--danger-color); color: white; }
+        
+        .json-editor {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            min-height: 200px;
+        }
+        
+        .response-area {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .section-header {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: relative;
+                height: auto;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar col-md-3 col-lg-2 d-md-block">
+        <div class="position-sticky pt-3">
+            <h4 class="text-center mt-3 mb-4">
+                <i class="bi bi-building"></i> University API Tester
+            </h4>
+            
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" data-section="studenti">
+                        <i class="bi bi-people-fill"></i> Studenti
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="docenti">
+                        <i class="bi bi-person-badge-fill"></i> Docenti
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="dipartimenti">
+                        <i class="bi bi-building"></i> Dipartimenti
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="corsi">
+                        <i class="bi bi-journal-text"></i> Corsi
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="iscrizioni">
+                        <i class="bi bi-clipboard-check"></i> Iscrizioni
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="assegnazioni">
+                        <i class="bi bi-person-workspace"></i> Assegnazioni
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="prerequisiti">
+                        <i class="bi bi-diagram-3"></i> Prerequisiti
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="ricerche">
+                        <i class="bi bi-search"></i> Ricerche
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="filtri">
+                        <i class="bi bi-funnel-fill"></i> Filtri Avanzati
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="operazioni">
+                        <i class="bi bi-gear-fill"></i> Operazioni
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="mt-5 px-3">
+                <h6>Configurazione API</h6>
+                <div class="mb-3">
+                    <label for="baseUrl" class="form-label small">Base URL</label>
+                    <input type="text" class="form-control form-control-sm" id="baseUrl" 
+                           value="http://localhost:8080/api/university">
+                </div>
+                <button id="testConnection" class="btn btn-sm btn-outline-light w-100">
+                    <i class="bi bi-plug"></i> Test Connessione
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 id="section-title">Gestione Studenti</h3>
+            <div class="alert alert-info d-none" id="statusAlert">
+                <span id="statusMessage"></span>
+            </div>
+        </div>
+        
+        <!-- Dynamic Content -->
+        <div id="content-area">
+            <!-- Content will be loaded here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Response Modal -->
+    <div class="modal fade" id="responseModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Risposta API</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <strong>Status:</strong> <span id="responseStatus" class="badge bg-success"></span>
+                    </div>
+                    <div>
+                        <strong>Response Body:</strong>
+                        <div id="responseBody" class="response-area mt-2"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configuration
+        const API_BASE_URL = document.getElementById('baseUrl').value;
+        let currentSection = 'studenti';
+        
+        // Endpoint definitions
+        const endpoints = {
+            studenti: [
+                {
+                    method: 'POST',
+                    path: '/studenti',
+                    name: 'Crea Studente',
+                    description: 'Crea un nuovo studente',
+                    fields: [
+                        { name: 'nome', type: 'text', required: true, placeholder: 'Mario' },
+                        { name: 'cognome', type: 'text', required: true, placeholder: 'Rossi' },
+                        { name: 'dataNascita', type: 'date', required: true, placeholder: 'YYYY-MM-DD' },
+                        { name: 'email', type: 'email', required: true, placeholder: 'mario.rossi@email.it' },
+                        { name: 'telefono', type: 'text', required: false, placeholder: '+39 1234567890' },
+                        { name: 'matricola', type: 'text', required: true, placeholder: 'MAT001' },
+                        { name: 'annoImmatricolazione', type: 'number', required: true, placeholder: '2023' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/studenti/{id}',
+                    name: 'Get Studente by ID',
+                    description: 'Ottiene uno studente tramite ID',
+                    fields: [
+                        { name: 'id', type: 'number', required: true, placeholder: '1' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/studenti/matricola/{matricola}',
+                    name: 'Get Studente by Matricola',
+                    description: 'Ottiene uno studente tramite matricola',
+                    fields: [
+                        { name: 'matricola', type: 'text', required: true, placeholder: 'MAT001' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/studenti',
+                    name: 'Get All Studenti',
+                    description: 'Ottiene tutti gli studenti',
+                    fields: []
+                },
+                {
+                    method: 'PUT',
+                    path: '/studenti/{id}',
+                    name: 'Update Studente',
+                    description: 'Aggiorna i dati di uno studente',
+                    fields: [
+                        { name: 'id', type: 'number', required: true, placeholder: '1' },
+                        { name: 'nome', type: 'text', required: false, placeholder: 'Mario' },
+                        { name: 'cognome', type: 'text', required: false, placeholder: 'Rossi' },
+                        { name: 'telefono', type: 'text', required: false, placeholder: '+39 1234567890' },
+                        { name: 'semestreCorrente', type: 'number', required: false, placeholder: '3' }
+                    ]
+                },
+                {
+                    method: 'DELETE',
+                    path: '/studenti/{id}',
+                    name: 'Delete Studente',
+                    description: 'Elimina uno studente',
+                    fields: [
+                        { name: 'id', type: 'number', required: true, placeholder: '1' }
+                    ]
+                }
+            ],
+            docenti: [
+                {
+                    method: 'POST',
+                    path: '/docenti',
+                    name: 'Crea Docente',
+                    description: 'Crea un nuovo docente',
+                    fields: [
+                        { name: 'nome', type: 'text', required: true, placeholder: 'Giovanni' },
+                        { name: 'cognome', type: 'text', required: true, placeholder: 'Bianchi' },
+                        { name: 'dataNascita', type: 'date', required: true, placeholder: 'YYYY-MM-DD' },
+                        { name: 'email', type: 'email', required: true, placeholder: 'g.bianchi@university.it' },
+                        { name: 'telefono', type: 'text', required: false, placeholder: '+39 1234567890' },
+                        { name: 'codiceDocente', type: 'text', required: true, placeholder: 'DOC001' },
+                        { name: 'gradoAccademico', type: 'select', required: true, 
+                          options: ['PROFESSORE_ORDINARIO', 'PROFESSORE_ASSOCIATO', 'RICERCATORE', 'CONTRATTISTA'] },
+                        { name: 'stipendio', type: 'number', required: true, placeholder: '3500.00', step: '0.01' },
+                        { name: 'dataAssunzione', type: 'date', required: true, placeholder: 'YYYY-MM-DD' },
+                        { name: 'ufficio', type: 'text', required: false, placeholder: 'Aula 301' },
+                        { name: 'specializzazione', type: 'text', required: false, placeholder: 'Informatica' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/docenti/{id}',
+                    name: 'Get Docente by ID',
+                    description: 'Ottiene un docente tramite ID',
+                    fields: [
+                        { name: 'id', type: 'number', required: true, placeholder: '1' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/docenti',
+                    name: 'Get All Docenti',
+                    description: 'Ottiene tutti i docenti',
+                    fields: []
+                },
+                {
+                    method: 'PUT',
+                    path: '/docenti/{id}',
+                    name: 'Update Docente',
+                    description: 'Aggiorna i dati di un docente',
+                    fields: [
+                        { name: 'id', type: 'number', required: true, placeholder: '1' },
+                        { name: 'nome', type: 'text', required: false, placeholder: 'Giovanni' },
+                        { name: 'cognome', type: 'text', required: false, placeholder: 'Bianchi' },
+                        { name: 'telefono', type: 'text', required: false, placeholder: '+39 1234567890' },
+                        { name: 'stipendio', type: 'number', required: false, placeholder: '3500.00', step: '0.01' },
+                        { name: 'ufficio', type: 'text', required: false, placeholder: 'Aula 301' },
+                        { name: 'specializzazione', type: 'text', required: false, placeholder: 'Informatica' }
+                    ]
+                },
+                {
+                    method: 'DELETE',
+                    path: '/docenti/{id}',
+                    name: 'Delete Docente',
+                    description: 'Elimina un docente',
+                    fields: [
+                        { name: 'id', type: 'number', required: true, placeholder: '1' }
+                    ]
+                }
+            ],
+            dipartimenti: [
+                {
+                    method: 'POST',
+                    path: '/dipartimenti',
+                    name: 'Crea Dipartimento',
+                    description: 'Crea un nuovo dipartimento',
+                    fields: [
+                        { name: 'codice', type: 'text', required: true, placeholder: 'DIP001' },
+                        { name: 'nome', type: 'text', required: true, placeholder: 'Informatica' },
+                        { name: 'descrizione', type: 'text', required: false, placeholder: 'Dipartimento di Informatica' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/dipartimenti/{id}',
+                    name: 'Get Dipartimento by ID',
+                    description: 'Ottiene un dipartimento tramite ID',
+                    fields: [
+                        { name: 'id', type: 'number', required: true, placeholder: '1' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/dipartimenti',
+                    name: 'Get All Dipartimenti',
+                    description: 'Ottiene tutti i dipartimenti',
+                    fields: []
+                },
+                {
+                    method: 'PUT',
+                    path: '/dipartimenti/{id}',
+                    name: 'Update Dipartimento',
+                    description: 'Aggiorna i dati di un dipartimento',
+                    fields: [
+                        { name: 'id', type: 'number', required: true, placeholder: '1' },
+                        { name: 'nome', type: 'text', required: false, placeholder: 'Informatica' },
+                        { name: 'descrizione', type: 'text', required: false, placeholder: 'Nuova descrizione' }
+                    ]
+                },
+                {
+                    method: 'DELETE',
+                    path: '/dipartimenti/{id}',
+                    name: 'Delete Dipartimento',
+                    description: 'Elimina un dipartimento',
+                    fields: [
+                        { name: 'id', type: 'number', required: true, placeholder: '1' }
+                    ]
+                }
+            ],
+            corsi: [
+                {
+                    method: 'POST',
+                    path: '/corsi',
+                    name: 'Crea Corso',
+                    description: 'Crea un nuovo corso',
+                    fields: [
+                        { name: 'codice', type: 'text', required: true, placeholder: 'COR001' },
+                        { name: 'nome', type: 'text', required: true, placeholder: 'Programmazione Java' },
+                        { name: 'descrizione', type: 'text', required: false, placeholder: 'Corso base di programmazione Java' },
+                        { name: 'crediti', type: 'number', required: true, placeholder: '6' },
+                        { name: 'semestre', type: 'number', required: true, placeholder: '1' },
+                        { name: 'dipartimentoId', type: 'number', required: true, placeholder: '1' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/corsi/{id}',
+                    name: 'Get Corso by ID',
+                    description: 'Ottiene un corso tramite ID',
+                    fields: [
+                        { name: 'id', type: 'number', required: true, placeholder: '1' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/corsi',
+                    name: 'Get All Corsi',
+                    description: 'Ottiene tutti i corsi',
+                    fields: []
+                },
+                {
+                    method: 'PUT',
+                    path: '/corsi/{id}',
+                    name: 'Update Corso',
+                    description: 'Aggiorna i dati di un corso',
+                    fields: [
+                        { name: 'id', type: 'number', required: true, placeholder: '1' },
+                        { name: 'nome', type: 'text', required: false, placeholder: 'Programmazione Java Avanzata' },
+                        { name: 'descrizione', type: 'text', required: false, placeholder: 'Corso avanzato di Java' },
+                        { name: 'crediti', type: 'number', required: false, placeholder: '9' },
+                        { name: 'semestre', type: 'number', required: false, placeholder: '2' }
+                    ]
+                },
+                {
+                    method: 'DELETE',
+                    path: '/corsi/{id}',
+                    name: 'Delete Corso',
+                    description: 'Elimina un corso',
+                    fields: [
+                        { name: 'id', type: 'number', required: true, placeholder: '1' }
+                    ]
+                }
+            ],
+            iscrizioni: [
+                {
+                    method: 'POST',
+                    path: '/iscrizioni',
+                    name: 'Iscrivi Studente a Corso',
+                    description: 'Iscrive uno studente a un corso',
+                    fields: [
+                        { name: 'studenteId', type: 'number', required: true, placeholder: '1' },
+                        { name: 'corsoId', type: 'number', required: true, placeholder: '1' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/iscrizioni/studente/{studenteId}',
+                    name: 'Get Iscrizioni Studente',
+                    description: 'Ottiene tutte le iscrizioni di uno studente',
+                    fields: [
+                        { name: 'studenteId', type: 'number', required: true, placeholder: '1' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/iscrizioni/corso/{corsoId}',
+                    name: 'Get Iscrizioni Corso',
+                    description: 'Ottiene tutte le iscrizioni a un corso',
+                    fields: [
+                        { name: 'corsoId', type: 'number', required: true, placeholder: '1' }
+                    ]
+                },
+                {
+                    method: 'PUT',
+                    path: '/iscrizioni/{iscrizioneId}/voto',
+                    name: 'Assegna Voto',
+                    description: 'Assegna un voto a un\'iscrizione',
+                    fields: [
+                        { name: 'iscrizioneId', type: 'number', required: true, placeholder: '1' },
+                        { name: 'voto', type: 'number', required: true, placeholder: '28.5', step: '0.5' }
+                    ]
+                },
+                {
+                    method: 'DELETE',
+                    path: '/iscrizioni/{iscrizioneId}',
+                    name: 'Annulla Iscrizione',
+                    description: 'Annulla un\'iscrizione',
+                    fields: [
+                        { name: 'iscrizioneId', type: 'number', required: true, placeholder: '1' }
+                    ]
+                }
+            ],
+            assegnazioni: [
+                {
+                    method: 'POST',
+                    path: '/assegnazioni',
+                    name: 'Assegna Corso a Docente',
+                    description: 'Assegna un corso a un docente',
+                    fields: [
+                        { name: 'docenteId', type: 'number', required: true, placeholder: '1' },
+                        { name: 'corsoId', type: 'number', required: true, placeholder: '1' },
+                        { name: 'annoAccademico', type: 'text', required: true, placeholder: '2023-2024' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/assegnazioni/docente/{docenteId}',
+                    name: 'Get Corsi Insegnati da Docente',
+                    description: 'Ottiene tutti i corsi insegnati da un docente',
+                    fields: [
+                        { name: 'docenteId', type: 'number', required: true, placeholder: '1' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/assegnazioni/corso/{corsoId}',
+                    name: 'Get Docenti Che Insegnano Corso',
+                    description: 'Ottiene tutti i docenti che insegnano un corso',
+                    fields: [
+                        { name: 'corsoId', type: 'number', required: true, placeholder: '1' }
+                    ]
+                },
+                {
+                    method: 'DELETE',
+                    path: '/assegnazioni/{assegnazioneId}',
+                    name: 'Rimuovi Assegnazione',
+                    description: 'Rimuove un\'assegnazione corso-docente',
+                    fields: [
+                        { name: 'assegnazioneId', type: 'number', required: true, placeholder: '1' }
+                    ]
+                }
+            ],
+            prerequisiti: [
+                {
+                    method: 'POST',
+                    path: '/corsi/{corsoId}/prerequisiti/{prerequisitoId}',
+                    name: 'Aggiungi Prerequisito',
+                    description: 'Aggiunge un prerequisito a un corso',
+                    fields: [
+                        { name: 'corsoId', type: 'number', required: true, placeholder: '2' },
+                        { name: 'prerequisitoId', type: 'number', required: true, placeholder: '1' }
+                    ]
+                },
+                {
+                    method: 'DELETE',
+                    path: '/corsi/{corsoId}/prerequisiti/{prerequisitoId}',
+                    name: 'Rimuovi Prerequisito',
+                    description: 'Rimuove un prerequisito da un corso',
+                    fields: [
+                        { name: 'corsoId', type: 'number', required: true, placeholder: '2' },
+                        { name: 'prerequisitoId', type: 'number', required: true, placeholder: '1' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/corsi/{corsoId}/prerequisiti',
+                    name: 'Get Prerequisiti Corso',
+                    description: 'Ottiene tutti i prerequisiti di un corso',
+                    fields: [
+                        { name: 'corsoId', type: 'number', required: true, placeholder: '1' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/corsi/{corsoId}/richiesti-da',
+                    name: 'Get Corsi Che Richiedono Corso',
+                    description: 'Ottiene tutti i corsi che richiedono questo corso come prerequisito',
+                    fields: [
+                        { name: 'corsoId', type: 'number', required: true, placeholder: '1' }
+                    ]
+                }
+            ],
+            ricerche: [
+                {
+                    method: 'GET',
+                    path: '/ricerca/studenti',
+                    name: 'Ricerca Studenti',
+                    description: 'Ricerca studenti con filtri avanzati',
+                    fields: [
+                        { name: 'nome', type: 'text', required: false, placeholder: 'Mario' },
+                        { name: 'minCrediti', type: 'number', required: false, placeholder: '30' },
+                        { name: 'minMedia', type: 'number', required: false, placeholder: '24.0', step: '0.1' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/ricerca/docenti',
+                    name: 'Ricerca Docenti',
+                    description: 'Ricerca docenti con filtri avanzati',
+                    fields: [
+                        { name: 'nome', type: 'text', required: false, placeholder: 'Giovanni' },
+                        { name: 'grado', type: 'select', required: false, 
+                          options: ['PROFESSORE_ORDINARIO', 'PROFESSORE_ASSOCIATO', 'RICERCATORE', 'CONTRATTISTA'] },
+                        { name: 'specializzazione', type: 'text', required: false, placeholder: 'Informatica' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/ricerca/corsi',
+                    name: 'Ricerca Corsi',
+                    description: 'Ricerca corsi con filtri avanzati',
+                    fields: [
+                        { name: 'keyword', type: 'text', required: false, placeholder: 'Java' },
+                        { name: 'semestre', type: 'number', required: false, placeholder: '1' },
+                        { name: 'minCrediti', type: 'number', required: false, placeholder: '6' },
+                        { name: 'dipartimentoId', type: 'number', required: false, placeholder: '1' }
+                    ]
+                }
+            ],
+            filtri: [
+                {
+                    method: 'GET',
+                    path: '/filtri/studenti/dipartimento',
+                    name: 'Filtra Studenti per Dipartimento',
+                    description: 'Filtra studenti iscritti a corsi di un dipartimento',
+                    fields: [
+                        { name: 'nomeDipartimento', type: 'text', required: true, placeholder: 'Informatica' },
+                        { name: 'nomeStudente', type: 'text', required: false, placeholder: 'Mario' },
+                        { name: 'minCrediti', type: 'number', required: false, placeholder: '30' },
+                        { name: 'minMedia', type: 'number', required: false, placeholder: '24.0', step: '0.1' }
+                    ]
+                },
+                {
+                    method: 'GET',
+                    path: '/filtri/corsi/docenti-recenti',
+                    name: 'Filtra Corsi con Docenti Recenti',
+                    description: 'Filtra corsi insegnati da docenti assunti di recente',
+                    fields: [
+                        { name: 'anno', type: 'number', required: false, placeholder: '2023' },
+                        { name: 'nomeCorso', type: 'text', required: false, placeholder: 'Programmazione' },
+                        { name: 'minCrediti', type: 'number', required: false, placeholder: '6' },
+                        { name: 'dipartimentoId', type: 'number', required: false, placeholder: '1' }
+                    ]
+                },
+                {
+                    method: 'POST',
+                    path: '/filtri/avanzati',
+                    name: 'Filtri Avanzati Combinati',
+                    description: 'Esegue filtri avanzati combinati',
+                    fields: [
+                        { name: 'nomeDipartimento', type: 'text', required: false, placeholder: 'Informatica' },
+                        { name: 'nomeStudente', type: 'text', required: false, placeholder: 'Mario' },
+                        { name: 'minCrediti', type: 'number', required: false, placeholder: '30' },
+                        { name: 'minMedia', type: 'number', required: false, placeholder: '24.0', step: '0.1' },
+                        { name: 'annoAssunzioneDocenti', type: 'number', required: false, placeholder: '2023' },
+                        { name: 'nomeCorso', type: 'text', required: false, placeholder: 'Programmazione' },
+                        { name: 'dipartimentoId', type: 'number', required: false, placeholder: '1' }
+                    ]
+                }
+            ],
+            operazioni: [
+                {
+                    method: 'PUT',
+                    path: '/corsi/{corsoId}/trasferisci/{nuovoDipartimentoId}',
+                    name: 'Trasferisci Corso a Dipartimento',
+                    description: 'Trasferisce un corso a un altro dipartimento',
+                    fields: [
+                        { name: 'corsoId', type: 'number', required: true, placeholder: '1' },
+                        { name: 'nuovoDipartimentoId', type: 'number', required: true, placeholder: '2' }
+                    ]
+                }
+            ]
+        };
+
+        // Section titles
+        const sectionTitles = {
+            studenti: 'Gestione Studenti',
+            docenti: 'Gestione Docenti',
+            dipartimenti: 'Gestione Dipartimenti',
+            corsi: 'Gestione Corsi',
+            iscrizioni: 'Gestione Iscrizioni',
+            assegnazioni: 'Gestione Assegnazioni',
+            prerequisiti: 'Gestione Prerequisiti',
+            ricerche: 'Ricerche Avanzate',
+            filtri: 'Filtri Avanzati',
+            operazioni: 'Operazioni Complesse'
+        };
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load initial section
+            loadSection('studenti');
+            
+            // Setup sidebar navigation
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    
+                    // Update active link
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Load new section
+                    loadSection(section);
+                });
+            });
+            
+            // Setup base URL change
+            document.getElementById('baseUrl').addEventListener('change', function() {
+                showStatus('Base URL aggiornato: ' + this.value, 'info');
+            });
+            
+            // Setup test connection button
+            document.getElementById('testConnection').addEventListener('click', testConnection);
+        });
+
+        // Load a section
+        function loadSection(section) {
+            currentSection = section;
+            
+            // Update title
+            document.getElementById('section-title').textContent = sectionTitles[section];
+            
+            // Get endpoints for this section
+            const sectionEndpoints = endpoints[section];
+            
+            // Generate HTML
+            let html = '';
+            
+            sectionEndpoints.forEach((endpoint, index) => {
+                html += `
+                <div class="card endpoint-card ${endpoint.method}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="card-title">${endpoint.name}</h5>
+                                <p class="card-text text-muted">${endpoint.description}</p>
+                            </div>
+                            <span class="method-badge method-${endpoint.method}">${endpoint.method}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <code class="bg-light p-2 rounded d-block">${endpoint.path}</code>
+                        </div>
+                        
+                        ${generateFormFields(endpoint, index)}
+                        
+                        <button onclick="executeEndpoint(${index})" class="btn btn-sm btn-primary">
+                            <i class="bi bi-send"></i> Esegui Richiesta
+                        </button>
+                    </div>
+                </div>
+                `;
+            });
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        // Generate form fields for an endpoint
+        function generateFormFields(endpoint, endpointIndex) {
+            if (endpoint.fields.length === 0) {
+                return '';
+            }
+            
+            let html = '<div class="row g-3 mb-3">';
+            
+            endpoint.fields.forEach((field, fieldIndex) => {
+                const inputId = `input-${endpointIndex}-${fieldIndex}`;
+                const requiredAttr = field.required ? 'required' : '';
+                
+                if (field.type === 'select') {
+                    html += `
+                    <div class="col-md-6">
+                        <label for="${inputId}" class="form-label">${field.name} ${field.required ? '*' : ''}</label>
+                        <select id="${inputId}" class="form-select" ${requiredAttr}>
+                            <option value="">Seleziona...</option>
+                            ${field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                        </select>
+                    </div>
+                    `;
+                } else {
+                    html += `
+                    <div class="col-md-6">
+                        <label for="${inputId}" class="form-label">${field.name} ${field.required ? '*' : ''}</label>
+                        <input type="${field.type}" id="${inputId}" class="form-control" 
+                               placeholder="${field.placeholder || ''}" 
+                               ${field.step ? `step="${field.step}"` : ''}
+                               ${requiredAttr}>
+                    </div>
+                    `;
+                }
+            });
+            
+            html += '</div>';
+            return html;
+        }
+
+        // Execute an endpoint
+        async function executeEndpoint(endpointIndex) {
+            const endpoint = endpoints[currentSection][endpointIndex];
+            const baseUrl = document.getElementById('baseUrl').value;
+            
+            // Collect data from form fields
+            let url = endpoint.path;
+            let body = null;
+            let queryParams = [];
+            
+            endpoint.fields.forEach((field, fieldIndex) => {
+                const inputId = `input-${endpointIndex}-${fieldIndex}`;
+                const input = document.getElementById(inputId);
+                const value = input ? input.value.trim() : '';
+                
+                // Handle path parameters
+                if (url.includes(`{${field.name}}`)) {
+                    url = url.replace(`{${field.name}}`, encodeURIComponent(value));
+                }
+                // Handle query parameters (for GET requests with optional params)
+                else if (endpoint.method === 'GET' && value && !field.required) {
+                    queryParams.push(`${field.name}=${encodeURIComponent(value)}`);
+                }
+                // Handle request body (for POST/PUT)
+                else if (['POST', 'PUT'].includes(endpoint.method) && (value || field.required)) {
+                    if (!body) body = {};
+                    if (value) {
+                        // Convert numeric fields
+                        if (field.type === 'number') {
+                            body[field.name] = parseFloat(value);
+                        } else if (field.type === 'date') {
+                            body[field.name] = value;
+                        } else {
+                            body[field.name] = value;
+                        }
+                    }
+                }
+            });
+            
+            // Add query parameters to URL
+            if (queryParams.length > 0) {
+                url += '?' + queryParams.join('&');
+            }
+            
+            // Prepare request options
+            const requestOptions = {
+                method: endpoint.method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            };
+            
+            // Add body for POST/PUT requests
+            if (body && ['POST', 'PUT'].includes(endpoint.method)) {
+                requestOptions.body = JSON.stringify(body);
+            }
+            
+            // Show loading
+            showStatus(`Invio richiesta ${endpoint.method} a ${url}...`, 'info');
+            
+            try {
+                const response = await fetch(baseUrl + url, requestOptions);
+                const responseText = await response.text();
+                
+                // Parse JSON if possible
+                let responseData;
+                try {
+                    responseData = responseText ? JSON.parse(responseText) : null;
+                } catch {
+                    responseData = responseText;
+                }
+                
+                // Show response in modal
+                showResponse(response.status, responseData);
+                
+                // Show success/error message
+                if (response.ok) {
+                    showStatus(`Richiesta completata con successo! Status: ${response.status}`, 'success');
+                } else {
+                    showStatus(`Errore nella richiesta. Status: ${response.status}`, 'danger');
+                }
+                
+            } catch (error) {
+                showResponse(0, { error: error.message });
+                showStatus(`Errore di connessione: ${error.message}`, 'danger');
+            }
+        }
+
+        // Show response in modal
+        function showResponse(status, data) {
+            const statusBadge = document.getElementById('responseStatus');
+            const responseBody = document.getElementById('responseBody');
+            
+            // Set status
+            statusBadge.textContent = status || 'Connection Error';
+            statusBadge.className = `badge bg-${status >= 200 && status < 300 ? 'success' : 'danger'}`;
+            
+            // Format and display response body
+            if (typeof data === 'object') {
+                responseBody.textContent = JSON.stringify(data, null, 2);
+            } else {
+                responseBody.textContent = data;
+            }
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('responseModal'));
+            modal.show();
+        }
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const alert = document.getElementById('statusAlert');
+            const messageSpan = document.getElementById('statusMessage');
+            
+            messageSpan.textContent = message;
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.classList.remove('d-none');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                alert.classList.add('d-none');
+            }, 5000);
+        }
+
+        // Test connection to API
+        async function testConnection() {
+            const baseUrl = document.getElementById('baseUrl').value;
+            
+            showStatus('Test connessione in corso...', 'info');
+            
+            try {
+                const response = await fetch(baseUrl + '/studenti', {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    showStatus('Connessione API riuscita! ✅', 'success');
+                } else {
+                    showStatus(`API risponde ma con errore: ${response.status}`, 'warning');
+                }
+            } catch (error) {
+                showStatus(`Impossibile connettersi all'API: ${error.message}`, 'danger');
+            }
+        }
+
+        // Make functions available globally
+        window.executeEndpoint = executeEndpoint;
+    </script>
+</body>
+</html>
