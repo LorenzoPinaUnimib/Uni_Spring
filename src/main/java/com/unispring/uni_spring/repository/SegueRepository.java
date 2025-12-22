@@ -12,9 +12,9 @@ import java.util.Optional;
 @Repository
 public interface SegueRepository extends JpaRepository<Segue, Long> {
     
-    Optional<Segue> findByStudenteIdAndCorsoId(Long studenteId, Long corsoId);
+    Optional<Segue> findByStudenteMatricolaAndCorsoId(Long studenteMatricola, Long corsoId);
     
-    List<Segue> findByStudenteId(Long studenteId);
+    List<Segue> findByStudenteMatricola(Long studenteMatricola);
     List<Segue> findByCorsoId(Long corsoId);
     
     @Query("SELECT s FROM Segue s WHERE s.voto IS NOT NULL")

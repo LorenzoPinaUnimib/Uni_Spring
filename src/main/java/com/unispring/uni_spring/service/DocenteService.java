@@ -18,35 +18,37 @@ public class DocenteService {
     private DocenteRepository docenteRepository;
     
     // CRUD Operations
-    public Docente createDocente(Docente docente) {
+    public Docente createDocente(Docente docente) throws Exception{
+        if(docenteRepository.findByMatricola(docente.getMatricola()).isPresent())
+            throw new Exception("Matricola già presente");
         validateDocente(docente);
         return docenteRepository.save(docente);
     }
     
-    public Optional<Docente> findById(Long id) {
-        return docenteRepository.findById(id);
+    public Optional<Docente> findByMatricola(Long matricola) {
+        return docenteRepository.findById(matricola);
     }
     
     public List<Docente> findAll() {
         return docenteRepository.findAll();
     }
     
-    public Docente updateDocente(Long id, Docente docenteDetails) {
-        Docente docente = getDocenteOrThrow(id);
+    public Docente updateDocente(Long matricola, Docente docenteDetails) {
+        Docente docente = getDocenteOrThrow(matricola);
         updateDocenteFields(docente, docenteDetails);
         return docenteRepository.save(docente);
     }
     
-    public void deleteDocente(Long id) {
-        if (!docenteRepository.existsById(id)) {
-            throw new RuntimeException("Docente non trovato con id: " + id);
+    public void deleteDocente(Long matricola) {
+        if (!docenteRepository.existsById(matricola)) {
+            throw new RuntimeException("Docente non trovato con matricola: " + matricola);
         }
-        docenteRepository.deleteById(id);
+        docenteRepository.deleteById(matricola);
     }
     
     // Business Logic
-    public Docente updateStipendio(Long docenteId, BigDecimal nuovoStipendio) {
-        Docente docente = getDocenteOrThrow(docenteId);
+    public Docente updateStipendio(Long docenteMatricola, BigDecimal nuovoStipendio) {
+        Docente docente = getDocenteOrThrow(docenteMatricola);
         if (nuovoStipendio.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Stipendio deve essere positivo");
         }
@@ -54,14 +56,14 @@ public class DocenteService {
         return docenteRepository.save(docente);
     }
     
-    public Docente promuoviDocente(Long docenteId, Docente.GradoAccademico nuovoGrado) {
-        Docente docente = getDocenteOrThrow(docenteId);
+    public Docente promuoviDocente(Long docenteMatricola, Docente.GradoAccademico nuovoGrado) {
+        Docente docente = getDocenteOrThrow(docenteMatricola);
         docente.setGradoAccademico(nuovoGrado);
         return docenteRepository.save(docente);
     }
     
-    public boolean canInsegnareCorso(Long docenteId, String materiaCorso) {
-        Docente docente = getDocenteOrThrow(docenteId);
+    public boolean canInsegnareCorso(Long docenteMatricola, String materiaCorso) {
+        Docente docente = getDocenteOrThrow(docenteMatricola);
         return docente.getSpecializzazione() != null && 
                docente.getSpecializzazione().toLowerCase().contains(materiaCorso.toLowerCase());
     }
@@ -96,9 +98,6 @@ public class DocenteService {
     
     // Private Helper Methods
     private void validateDocente(Docente docente) {
-        if (docente.getCodiceDocente() == null || docente.getCodiceDocente().isEmpty()) {
-            throw new RuntimeException("Codice docente è obbligatorio");
-        }
         if (docente.getStipendio().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Stipendio deve essere positivo");
         }

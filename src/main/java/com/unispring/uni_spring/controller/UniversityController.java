@@ -36,24 +36,18 @@ public class UniversityController {
             );
             System.out.println(studente.toString());
             return new ResponseEntity<>(studente, HttpStatus.CREATED);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
-    @GetMapping("/studenti/{id}")
-    public ResponseEntity<Studente> getStudenteById(@PathVariable Long id) {
-        return universityFacade.getStudenteById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/studenti/matricola/{matricola}")
-    public ResponseEntity<Studente> getStudenteByMatricola(@PathVariable String matricola) {
+    @GetMapping("/studenti/{matricola}")
+    public ResponseEntity<Studente> getStudenteByMatricola(@PathVariable Long matricola) {
         return universityFacade.getStudenteByMatricola(matricola)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
 
     @GetMapping("/studenti")
     public ResponseEntity<List<Studente>> getAllStudenti() {
@@ -61,12 +55,12 @@ public class UniversityController {
         return ResponseEntity.ok(studenti);
     }
 
-    @PutMapping("/studenti/{id}")
-    public ResponseEntity<Studente> updateStudente(@PathVariable Long id, 
+    @PutMapping("/studenti/{matricola}")
+    public ResponseEntity<Studente> updateStudente(@PathVariable Long matricola, 
                                                   @RequestBody StudenteUpdateRequest request) {
         try {
             Studente updated = universityFacade.updateStudente(
-                id,
+                matricola,
                 request.getNome(),
                 request.getCognome(),
                 request.getSemestreCorrente()
@@ -96,7 +90,7 @@ public class UniversityController {
                 request.getCognome(),
                 request.getDataNascita(),
                 request.getEmail(),
-                request.getCodiceDocente(),
+                request.getMatricola(),
                 request.getGradoAccademico(),
                 request.getStipendio(),
                 request.getDataAssunzione(),
@@ -104,14 +98,14 @@ public class UniversityController {
                 request.getSpecializzazione()
             );
             return new ResponseEntity<>(docente, HttpStatus.CREATED);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
     @GetMapping("/docenti/{id}")
-    public ResponseEntity<Docente> getDocenteById(@PathVariable Long id) {
-        return universityFacade.getDocenteById(id)
+    public ResponseEntity<Docente> getDocenteByMatricola(@PathVariable Long id) {
+        return universityFacade.getDocenteByMatricola(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -266,7 +260,7 @@ public class UniversityController {
     public ResponseEntity<Segue> iscriviStudenteACorso(@RequestBody IscrizioneRequest request) {
         try {
             Segue iscrizione = universityFacade.iscriviStudenteACorso(
-                request.getStudenteId(),
+                request.getStudenteMatricola(),
                 request.getCorsoId()
             );
             return new ResponseEntity<>(iscrizione, HttpStatus.CREATED);
@@ -275,9 +269,9 @@ public class UniversityController {
         }
     }
 
-    @GetMapping("/iscrizioni/studente/{studenteId}")
-    public ResponseEntity<List<Segue>> getIscrizioniStudente(@PathVariable Long studenteId) {
-        List<Segue> iscrizioni = universityFacade.getIscrizioniStudente(studenteId);
+    @GetMapping("/iscrizioni/studente/{studenteMatricola}")
+    public ResponseEntity<List<Segue>> getIscrizioniStudente(@PathVariable Long studenteMatricola) {
+        List<Segue> iscrizioni = universityFacade.getIscrizioniStudente(studenteMatricola);
         return ResponseEntity.ok(iscrizioni);
     }
 
@@ -313,7 +307,7 @@ public class UniversityController {
     public ResponseEntity<Insegna> assegnaCorsoADocente(@RequestBody AssegnazioneRequest request) {
         try {
             Insegna assegnazione = universityFacade.assegnaCorsoADocente(
-                request.getDocenteId(),
+                request.getDocenteMatricola(),
                 request.getCorsoId(),
                 request.getAnnoAccademico()
             );
@@ -323,9 +317,9 @@ public class UniversityController {
         }
     }
 
-    @GetMapping("/assegnazioni/docente/{docenteId}")
-    public ResponseEntity<List<Insegna>> getCorsiInsegnatiDaDocente(@PathVariable Long docenteId) {
-        List<Insegna> assegnazioni = universityFacade.getCorsiInsegnatiDaDocente(docenteId);
+    @GetMapping("/assegnazioni/docente/{docenteMatricola}")
+    public ResponseEntity<List<Insegna>> getCorsiInsegnatiDaDocente(@PathVariable Long docenteMatricola) {
+        List<Insegna> assegnazioni = universityFacade.getCorsiInsegnatiDaDocente(docenteMatricola);
         return ResponseEntity.ok(assegnazioni);
     }
 
@@ -582,7 +576,7 @@ public class UniversityController {
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         private LocalDate dataNascita;
         private String email;
-        private String matricola;
+        private Long matricola;
         private Integer annoImmatricolazione;
     }
 
@@ -600,7 +594,7 @@ public class UniversityController {
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         private LocalDate dataNascita;
         private String email;
-        private String codiceDocente;
+        private Long matricola;
         private Docente.GradoAccademico gradoAccademico;
         private BigDecimal stipendio;
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -651,7 +645,7 @@ public class UniversityController {
 
     @lombok.Data
     public static class IscrizioneRequest {
-        private Long studenteId;
+        private Long studenteMatricola;
         private Long corsoId;
     }
 
@@ -662,7 +656,7 @@ public class UniversityController {
 
     @lombok.Data
     public static class AssegnazioneRequest {
-        private Long docenteId;
+        private Long docenteMatricola;
         private Long corsoId;
         private String annoAccademico;
     }

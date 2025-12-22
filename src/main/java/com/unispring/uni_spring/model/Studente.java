@@ -12,12 +12,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "studenti")
-@PrimaryKeyJoinColumn(name = "persona_id")
+@PrimaryKeyJoinColumn(name = "persona_matricola")
 public class Studente extends Persona {
-    
-    @Column(name = "matricola", unique = true, nullable = false)
-    private String matricola;
-    
+        
     @Column(name = "anno_immatricolazione", nullable = false)
     private Integer annoImmatricolazione;
     

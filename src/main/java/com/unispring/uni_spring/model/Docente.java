@@ -14,15 +14,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "docenti")
-@PrimaryKeyJoinColumn(name = "persona_id")
+@PrimaryKeyJoinColumn(name = "persona_matricola")
 public class Docente extends Persona {
     
     public enum GradoAccademico {
         RICERCATORE, PROFESSORE_ASSOCIATO, PROFESSORE_ORDINARIO, EMERITO
     }
-    
-    @Column(name = "codice_docente", unique = true, nullable = false)
-    private String codiceDocente;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "grado_accademico", nullable = false)

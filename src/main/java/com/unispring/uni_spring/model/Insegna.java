@@ -17,7 +17,7 @@ public class Insegna {
     private String annoAccademico;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "docente_id", nullable = false)
+    @JoinColumn(name = "docente_matricola", nullable = false)
     private Docente docente;
     
     @ManyToOne(fetch = FetchType.LAZY)

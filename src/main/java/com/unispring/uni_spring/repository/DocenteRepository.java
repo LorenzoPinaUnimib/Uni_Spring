@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface DocenteRepository extends JpaRepository<Docente, Long> {
     
-    Optional<Docente> findByCodiceDocente(String codiceDocente);
+    Optional<Docente> findByMatricola(Long matricola);
     Optional<Docente> findByEmail(String email);
     
     List<Docente> findByGradoAccademico(Docente.GradoAccademico grado);

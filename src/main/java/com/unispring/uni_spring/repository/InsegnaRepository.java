@@ -12,9 +12,9 @@ import java.util.Optional;
 @Repository
 public interface InsegnaRepository extends JpaRepository<Insegna, Long> {
     
-    Optional<Insegna> findByDocenteIdAndCorsoId(Long docenteId, Long corsoId);
+    Optional<Insegna> findByDocenteMatricolaAndCorsoId(Long docenteMatricola, Long corsoId);
     
-    List<Insegna> findByDocenteId(Long docenteId);
+    List<Insegna> findByDocenteMatricola(Long docenteMatricola);
     List<Insegna> findByCorsoId(Long corsoId);
     
     @Query("SELECT i FROM Insegna i WHERE i.annoAccademico = :annoAccademico")

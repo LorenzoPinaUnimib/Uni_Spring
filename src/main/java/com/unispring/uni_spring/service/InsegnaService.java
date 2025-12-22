@@ -34,8 +34,8 @@ public class InsegnaService {
         return insegnaRepository.findById(id);
     }
     
-    public List<Insegna> findByDocenteId(Long docenteId) {
-        return insegnaRepository.findByDocenteId(docenteId);
+    public List<Insegna> findByDocenteMatricola(Long docenteId) {
+        return insegnaRepository.findByDocenteMatricola(docenteId);
     }
     
     public List<Insegna> findByCorsoId(Long corsoId) {
@@ -65,8 +65,8 @@ public class InsegnaService {
         return insegnaRepository.count();
     }
     
-    public int countCorsiDocente(Long docenteId) {
-        return insegnaRepository.findByDocenteId(docenteId).size();
+    public int countCorsiDocente(Long docenteMatricola) {
+        return insegnaRepository.findByDocenteMatricola(docenteMatricola).size();
     }
     
     public int countDocentiCorso(Long corsoId) {
@@ -77,7 +77,7 @@ public class InsegnaService {
     private void validateAssegnazione(Docente docente, Corso corso) {
         // Controlla se già assegnato
         Optional<Insegna> existing = insegnaRepository
-                .findByDocenteIdAndCorsoId(docente.getId(), corso.getId());
+                .findByDocenteMatricolaAndCorsoId(docente.getMatricola(), corso.getId());
         
         if (existing.isPresent()) {
             throw new RuntimeException("Docente già assegnato a questo corso");

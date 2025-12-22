@@ -4,6 +4,7 @@ import com.unispring.uni_spring.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,7 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-@Transactional
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class UniversityFacade {
     
     @Autowired private StudenteService studenteService;
@@ -25,8 +26,8 @@ public class UniversityFacade {
     // ========== STUDENTI ==========
     
     public Studente createStudente(String nome, String cognome, LocalDate dataNascita,
-                                  String email,  String matricola,
-                                  Integer annoImmatricolazione) {
+                                  String email,  Long matricola,
+                                  Integer annoImmatricolazione) throws Exception{
         Studente studente = new Studente();
         studente.setNome(nome);
         studente.setCognome(cognome);
@@ -39,10 +40,10 @@ public class UniversityFacade {
     }
     
     public Optional<Studente> getStudenteById(Long id) {
-        return studenteService.findById(id);
+        return studenteService.findByMatricola(id);
     }
     
-    public Optional<Studente> getStudenteByMatricola(String matricola) {
+    public Optional<Studente> getStudenteByMatricola(Long matricola) {
         return studenteService.findByMatricola(matricola);
     }
     
@@ -50,14 +51,14 @@ public class UniversityFacade {
         return studenteService.findAll();
     }
     
-    public Studente updateStudente(Long id, String nome, String cognome, 
+    public Studente updateStudente(Long matricola, String nome, String cognome, 
                                    Integer semestreCorrente) {
         Studente studenteDetails = new Studente();
         if (nome != null) studenteDetails.setNome(nome);
         if (cognome != null) studenteDetails.setCognome(cognome);
         if (semestreCorrente != null) studenteDetails.setSemestreCorrente(semestreCorrente);
         
-        return studenteService.updateStudente(id, studenteDetails);
+        return studenteService.updateStudente(matricola, studenteDetails);
     }
     
     public void deleteStudente(Long id) {
@@ -67,15 +68,15 @@ public class UniversityFacade {
     // ========== DOCENTI ==========
     
     public Docente createDocente(String nome, String cognome, LocalDate dataNascita,
-                                String email, String codiceDocente,
+                                String email, Long matricola,
                                 Docente.GradoAccademico gradoAccademico, BigDecimal stipendio,
-                                LocalDate dataAssunzione, String ufficio, String specializzazione) {
+                                LocalDate dataAssunzione, String ufficio, String specializzazione) throws Exception {
         Docente docente = new Docente();
         docente.setNome(nome);
         docente.setCognome(cognome);
         docente.setDataNascita(dataNascita);
         docente.setEmail(email);
-        docente.setCodiceDocente(codiceDocente);
+        docente.setMatricola(matricola);
         docente.setGradoAccademico(gradoAccademico);
         docente.setStipendio(stipendio);
         docente.setDataAssunzione(dataAssunzione);
@@ -85,8 +86,8 @@ public class UniversityFacade {
         return docenteService.createDocente(docente);
     }
     
-    public Optional<Docente> getDocenteById(Long id) {
-        return docenteService.findById(id);
+    public Optional<Docente> getDocenteByMatricola(Long matricola) {
+        return docenteService.findByMatricola(matricola);
     }
     
     public List<Docente> getAllDocenti() {
@@ -186,15 +187,15 @@ public class UniversityFacade {
     
     // ========== ISCRIZIONI (SEGUE) ==========
     
-    public Segue iscriviStudenteACorso(Long studenteId, Long corsoId) {
-        Studente studente = studenteService.findById(studenteId)
+    public Segue iscriviStudenteACorso(Long studenteMatricola, Long corsoId) {
+        Studente studente = studenteService.findByMatricola(studenteMatricola)
                 .orElseThrow(() -> new RuntimeException("Studente non trovato"));
         
         Corso corso = corsoService.findById(corsoId)
                 .orElseThrow(() -> new RuntimeException("Corso non trovato"));
         
         // Validazioni business
-        if (!studenteService.canIscriversiACorso(studenteId, corso.getCrediti())) {
+        if (!studenteService.canIscriversiACorso(studenteMatricola, corso.getCrediti())) {
             throw new RuntimeException("Studente non può iscriversi - limite crediti superato");
         }
         
@@ -202,15 +203,15 @@ public class UniversityFacade {
             throw new RuntimeException("Corso è pieno");
         }
         
-        if (!corsoService.hasPrerequisitiSoddisfatti(corsoId, studenteId)) {
+        if (!corsoService.hasPrerequisitiSoddisfatti(corsoId, studenteMatricola)) {
             throw new RuntimeException("Prerequisiti non soddisfatti");
         }
         
         return segueService.iscriviStudente(studente, corso);
     }
     
-    public List<Segue> getIscrizioniStudente(Long studenteId) {
-        return segueService.findByStudenteId(studenteId);
+    public List<Segue> getIscrizioniStudente(Long studenteMatricola) {
+        return segueService.findByStudenteMatricola(studenteMatricola);
     }
     
     public List<Segue> getIscrizioniCorso(Long corsoId) {
@@ -222,11 +223,11 @@ public class UniversityFacade {
         Segue iscrizione = segueService.assegnaVoto(iscrizioneId, voto);
         
         // Ricalcola media voti studente
-        Double nuovaMedia = segueService.calculateMediaVotoStudente(iscrizione.getStudente().getId());
-        studenteService.updateMediaVoti(iscrizione.getStudente().getId(), nuovaMedia);
+        Double nuovaMedia = segueService.calculateMediaVotoStudente(iscrizione.getStudente().getMatricola());
+        studenteService.updateMediaVoti(iscrizione.getStudente().getMatricola(), nuovaMedia);
         
         // Aggiorna crediti studente
-        studenteService.addCrediti(iscrizione.getStudente().getId(), iscrizione.getCorso().getCrediti());
+        studenteService.addCrediti(iscrizione.getStudente().getMatricola(), iscrizione.getCorso().getCrediti());
         
         return iscrizione;
     }
@@ -237,23 +238,23 @@ public class UniversityFacade {
     
     // ========== ASSEGNAZIONI (INSEGNA) ==========
     
-    public Insegna assegnaCorsoADocente(Long docenteId, Long corsoId, String annoAccademico) {
-        Docente docente = docenteService.findById(docenteId)
+    public Insegna assegnaCorsoADocente(Long docenteMatricola, Long corsoId, String annoAccademico) {
+        Docente docente = docenteService.findByMatricola(docenteMatricola)
                 .orElseThrow(() -> new RuntimeException("Docente non trovato"));
         
         Corso corso = corsoService.findById(corsoId)
                 .orElseThrow(() -> new RuntimeException("Corso non trovato"));
         
         // Validazione: docente può insegnare questa materia?
-        if (!docenteService.canInsegnareCorso(docenteId, corso.getNome())) {
+        if (!docenteService.canInsegnareCorso(docenteMatricola, corso.getNome())) {
             throw new RuntimeException("Docente non specializzato in questa materia");
         }
         
         return insegnaService.assegnaCorsoADocente(docente, corso, annoAccademico);
     }
     
-    public List<Insegna> getCorsiInsegnatiDaDocente(Long docenteId) {
-        return insegnaService.findByDocenteId(docenteId);
+    public List<Insegna> getCorsiInsegnatiDaDocente(Long docenteMatricola) {
+        return insegnaService.findByDocenteMatricola(docenteMatricola);
     }
     
     public List<Insegna> getDocentiCheInsegnanoCorso(Long corsoId) {
@@ -430,20 +431,20 @@ public class UniversityFacade {
         );
     }
     
-    public Map<String, Object> getStatisticheStudente(Long studenteId) {
-        Studente studente = studenteService.findById(studenteId)
+    public Map<String, Object> getStatisticheStudente(Long studenteMatricola) {
+        Studente studente = studenteService.findByMatricola(studenteMatricola)
                 .orElseThrow(() -> new RuntimeException("Studente non trovato"));
         
-        List<Segue> iscrizioni = segueService.findByStudenteId(studenteId);
+        List<Segue> iscrizioni = segueService.findByStudenteMatricola(studenteMatricola);
         long totalCorsi = iscrizioni.size();
         long corsiSuperati = iscrizioni.stream()
                 .filter(s -> s.getVoto() != null && s.getVoto() >= 18.0)
                 .count();
         
-        Double mediaVotoStudente = segueService.calculateMediaVotoStudente(studenteId);
+        Double mediaVotoStudente = segueService.calculateMediaVotoStudente(studenteMatricola);
         
         return Map.of(
-            "studenteId", studenteId,
+            "studenteMatricola", studenteMatricola,
             "studenteNome", studente.getNomeCompleto(),
             "matricola", studente.getMatricola(),
             "creditiTotali", studente.getCreditiTotali(),
@@ -470,7 +471,7 @@ public class UniversityFacade {
         // Conta docenti che insegnano corsi del dipartimento
         long totalDocenti = corsiDipartimento.stream()
                 .flatMap(c -> insegnaService.findByCorsoId(c.getId()).stream())
-                .map(i -> i.getDocente().getId())
+                .map(i -> i.getDocente().getMatricola())
                 .distinct()
                 .count();
         
@@ -587,16 +588,16 @@ public class UniversityFacade {
         
         for (Map<String, Long> richiesta : richieste) {
             try {
-                Long studenteId = richiesta.get("studenteId");
+                Long studenteMatricola = richiesta.get("studenteMatricola");
                 Long corsoId = richiesta.get("corsoId");
                 
-                if (studenteId == null || corsoId == null) {
+                if (studenteMatricola == null || corsoId == null) {
                     fallito++;
-                    errori.add("Mancano studenteId o corsoId nella richiesta");
+                    errori.add("Mancano studenteMatricola o corsoId nella richiesta");
                     continue;
                 }
                 
-                Segue iscrizione = iscriviStudenteACorso(studenteId, corsoId);
+                Segue iscrizione = iscriviStudenteACorso(studenteMatricola, corsoId);
                 iscrizioni.add(iscrizione);
                 successo++;
             } catch (RuntimeException e) {
@@ -769,12 +770,12 @@ public class UniversityFacade {
     
     // ========== UTILITY METHODS ==========
     
-    public boolean studenteEsiste(Long studenteId) {
-        return studenteService.findById(studenteId).isPresent();
+    public boolean studenteEsiste(Long studenteMatricola) {
+        return studenteService.findByMatricola(studenteMatricola).isPresent();
     }
     
-    public boolean docenteEsiste(Long docenteId) {
-        return docenteService.findById(docenteId).isPresent();
+    public boolean docenteEsiste(Long docenteMatricola) {
+        return docenteService.findByMatricola(docenteMatricola).isPresent();
     }
     
     public boolean dipartimentoEsiste(Long dipartimentoId) {

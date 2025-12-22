@@ -252,18 +252,8 @@
                         { name: 'cognome', type: 'text', required: true, placeholder: 'Rossi' },
                         { name: 'dataNascita', type: 'date', required: true, placeholder: 'YYYY-MM-DD' },
                         { name: 'email', type: 'email', required: true, placeholder: 'mario.rossi@email.it' },
-                        { name: 'telefono', type: 'text', required: false, placeholder: '+39 1234567890' },
-                        { name: 'matricola', type: 'text', required: true, placeholder: 'MAT001' },
+                        { name: 'matricola', type: 'number', required: true, placeholder: '457520' },
                         { name: 'annoImmatricolazione', type: 'number', required: true, placeholder: '2023' }
-                    ]
-                },
-                {
-                    method: 'GET',
-                    path: '/studenti/{id}',
-                    name: 'Get Studente by ID',
-                    description: 'Ottiene uno studente tramite ID',
-                    fields: [
-                        { name: 'id', type: 'number', required: true, placeholder: '1' }
                     ]
                 },
                 {
@@ -284,24 +274,23 @@
                 },
                 {
                     method: 'PUT',
-                    path: '/studenti/{id}',
+                    path: '/studenti/{matricola}',
                     name: 'Update Studente',
                     description: 'Aggiorna i dati di uno studente',
                     fields: [
-                        { name: 'id', type: 'number', required: true, placeholder: '1' },
+                        { name: 'matricola', type: 'number', required: true, placeholder: '457540' },
                         { name: 'nome', type: 'text', required: false, placeholder: 'Mario' },
                         { name: 'cognome', type: 'text', required: false, placeholder: 'Rossi' },
-                        { name: 'telefono', type: 'text', required: false, placeholder: '+39 1234567890' },
                         { name: 'semestreCorrente', type: 'number', required: false, placeholder: '3' }
                     ]
                 },
                 {
                     method: 'DELETE',
-                    path: '/studenti/{id}',
+                    path: '/studenti/{matricola}',
                     name: 'Delete Studente',
                     description: 'Elimina uno studente',
                     fields: [
-                        { name: 'id', type: 'number', required: true, placeholder: '1' }
+                        { name: 'matricola', type: 'number', required: true, placeholder: '1' }
                     ]
                 }
             ],
@@ -316,8 +305,7 @@
                         { name: 'cognome', type: 'text', required: true, placeholder: 'Bianchi' },
                         { name: 'dataNascita', type: 'date', required: true, placeholder: 'YYYY-MM-DD' },
                         { name: 'email', type: 'email', required: true, placeholder: 'g.bianchi@university.it' },
-                        { name: 'telefono', type: 'text', required: false, placeholder: '+39 1234567890' },
-                        { name: 'codiceDocente', type: 'text', required: true, placeholder: 'DOC001' },
+                        { name: 'matricola', type: 'text', required: true, placeholder: '781502' },
                         { name: 'gradoAccademico', type: 'select', required: true, 
                           options: ['PROFESSORE_ORDINARIO', 'PROFESSORE_ASSOCIATO', 'RICERCATORE', 'CONTRATTISTA'] },
                         { name: 'stipendio', type: 'number', required: true, placeholder: '3500.00', step: '0.01' },
@@ -328,11 +316,11 @@
                 },
                 {
                     method: 'GET',
-                    path: '/docenti/{id}',
-                    name: 'Get Docente by ID',
-                    description: 'Ottiene un docente tramite ID',
+                    path: '/docenti/{matricola}',
+                    name: 'Get Docente by matricola',
+                    description: 'Ottiene un docente tramite matricola',
                     fields: [
-                        { name: 'id', type: 'number', required: true, placeholder: '1' }
+                        { name: 'matricola', type: 'number', required: true, placeholder: '104542' }
                     ]
                 },
                 {
@@ -344,11 +332,11 @@
                 },
                 {
                     method: 'PUT',
-                    path: '/docenti/{id}',
+                    path: '/docenti/{matricola}',
                     name: 'Update Docente',
                     description: 'Aggiorna i dati di un docente',
                     fields: [
-                        { name: 'id', type: 'number', required: true, placeholder: '1' },
+                        { name: 'matricola', type: 'number', required: true, placeholder: '100125' },
                         { name: 'nome', type: 'text', required: false, placeholder: 'Giovanni' },
                         { name: 'cognome', type: 'text', required: false, placeholder: 'Bianchi' },
                         { name: 'telefono', type: 'text', required: false, placeholder: '+39 1234567890' },
@@ -359,11 +347,11 @@
                 },
                 {
                     method: 'DELETE',
-                    path: '/docenti/{id}',
+                    path: '/docenti/{matricola}',
                     name: 'Delete Docente',
                     description: 'Elimina un docente',
                     fields: [
-                        { name: 'id', type: 'number', required: true, placeholder: '1' }
+                        { name: 'matricola', type: 'number', required: true, placeholder: '104510' }
                     ]
                 }
             ],

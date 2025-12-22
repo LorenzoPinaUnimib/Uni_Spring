@@ -11,8 +11,8 @@ import java.time.LocalDate;
 public abstract class Persona {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "matricola", nullable = false, unique = true)
+    private Long matricola;
     
     @Column(name = "nome", nullable = false)
     private String nome;

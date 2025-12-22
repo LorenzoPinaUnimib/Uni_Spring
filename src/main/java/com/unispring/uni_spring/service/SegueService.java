@@ -35,8 +35,8 @@ public class SegueService {
         return segueRepository.findById(id);
     }
     
-    public List<Segue> findByStudenteId(Long studenteId) {
-        return segueRepository.findByStudenteId(studenteId);
+    public List<Segue> findByStudenteMatricola(Long studenteMatricola) {
+        return segueRepository.findByStudenteMatricola(studenteMatricola);
     }
     
     public List<Segue> findByCorsoId(Long corsoId) {
@@ -58,8 +58,8 @@ public class SegueService {
     }
     
     // Business Logic
-    public boolean hasSuperatoCorso(Long studenteId, Long corsoId) {
-        Optional<Segue> segue = segueRepository.findByStudenteIdAndCorsoId(studenteId, corsoId);
+    public boolean hasSuperatoCorso(Long studenteMatricola, Long corsoId) {
+        Optional<Segue> segue = segueRepository.findByStudenteMatricolaAndCorsoId(studenteMatricola, corsoId);
         return segue.isPresent() && 
                segue.get().getVoto() != null && 
                segue.get().getVoto() >= 18.0;
@@ -90,8 +90,8 @@ public class SegueService {
         return media != null ? media : 0.0;
     }
     
-    public Double calculateMediaVotoStudente(Long studenteId) {
-        List<Segue> iscrizioni = segueRepository.findByStudenteId(studenteId);
+    public Double calculateMediaVotoStudente(Long studenteMatricola) {
+        List<Segue> iscrizioni = segueRepository.findByStudenteMatricola(studenteMatricola);
         
         return iscrizioni.stream()
                 .filter(s -> s.getVoto() != null)
@@ -112,7 +112,7 @@ public class SegueService {
     private void validateIscrizione(Studente studente, Corso corso) {
         // Controlla se già iscritto
         Optional<Segue> existing = segueRepository
-                .findByStudenteIdAndCorsoId(studente.getId(), corso.getId());
+                .findByStudenteMatricolaAndCorsoId(studente.getMatricola(), corso.getId());
         
         if (existing.isPresent()) {
             throw new RuntimeException("Studente già iscritto a questo corso");

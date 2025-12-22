@@ -22,16 +22,14 @@ public class StudenteService {
     private SegueRepository segueRepository;
     
     // CRUD Operations
-    public Studente createStudente(Studente studente) {
+    public Studente createStudente(Studente studente) throws Exception{
+        if(studenteRepository.findByMatricola(studente.getMatricola()).isPresent())
+            throw new Exception("Matricola già presente");
         validateStudente(studente);
         return studenteRepository.save(studente);
     }
     
-    public Optional<Studente> findById(Long id) {
-        return studenteRepository.findById(id);
-    }
-    
-    public Optional<Studente> findByMatricola(String matricola) {
+    public Optional<Studente> findByMatricola(Long matricola) {
         return studenteRepository.findByMatricola(matricola);
     }
     
@@ -39,8 +37,8 @@ public class StudenteService {
         return studenteRepository.findAll();
     }
     
-    public Studente updateStudente(Long id, Studente studenteDetails) {
-        Studente studente = getStudenteOrThrow(id);
+    public Studente updateStudente(Long matricola, Studente studenteDetails) {
+        Studente studente = getStudenteOrThrow(matricola);
         updateStudenteFields(studente, studenteDetails);
         return studenteRepository.save(studente);
     }
@@ -124,17 +122,14 @@ public class StudenteService {
     
     // Private Helper Methods
     private void validateStudente(Studente studente) {
-        if (studente.getMatricola() == null || studente.getMatricola().isEmpty()) {
-            throw new RuntimeException("Matricola è obbligatoria");
-        }
         if (studente.getAnnoImmatricolazione() < 2000 || studente.getAnnoImmatricolazione() > 2100) {
             throw new RuntimeException("Anno immatricolazione non valido");
         }
     }
     
-    private Studente getStudenteOrThrow(Long id) {
-        return studenteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Studente non trovato con id: " + id));
+    private Studente getStudenteOrThrow(Long matricola) {
+        return studenteRepository.findByMatricola(matricola)
+                .orElseThrow(() -> new RuntimeException("Studente non trovato con id: " + matricola));
     }
     
     private void updateStudenteFields(Studente studente, Studente studenteDetails) {

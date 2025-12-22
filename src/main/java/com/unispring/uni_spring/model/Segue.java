@@ -7,7 +7,7 @@ import java.time.LocalDate;
 @Data
 @Entity
 @Table(name = "segue", 
-       uniqueConstraints = @UniqueConstraint(columnNames = {"studente_id", "corso_id"}))
+       uniqueConstraints = @UniqueConstraint(columnNames = {"studente_matricola", "corso_id"}))
 public class Segue {
     
     @Id
@@ -21,7 +21,7 @@ public class Segue {
     private Double voto;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "studente_id", nullable = false)
+    @JoinColumn(name = "studente_matricola", nullable = false)
     private Studente studente;
     
     @ManyToOne(fetch = FetchType.LAZY)
